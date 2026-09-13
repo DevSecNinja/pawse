@@ -64,6 +64,7 @@ try {
   const url = options.url ?? `http://127.0.0.1:${server.address().port}/pawse/`;
   const html = await (await get(url)).text();
   if (!html.includes("<title>Pawse - Miso</title>")) throw new Error("Expected Pawse HTML");
+  if (!html.includes('<html lang="en">')) throw new Error("Expected English document language");
   for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) new Script(match[1]);
   console.log("Checking:", url);
   profile = await mkdtemp(path.join(tmpdir(), "pawse-motion-"));
@@ -166,7 +167,9 @@ try {
       ok($("brand-icon").getAttribute("href") === "#" + buddy.logo, "Avatar mismatch");
       const selected = [...document.querySelectorAll('input[name="companion"]:checked')];
       ok(selected.length === 1 && selected[0].value === buddy.id, "Radio selection mismatch");
-      ok($("motion-label").textContent.includes(buddy.name) && $("gentle-copy").textContent.includes(buddy.name), "Companion copy mismatch");
+      ok($("motion-label").textContent === "Let " + buddy.name + " walk" &&
+        $("gentle-copy").textContent === buddy.name + " won't close anything or block your screen. You decide.", "English companion copy mismatch");
+      ok($("walk-art").getAttribute("aria-label") === buddy.name + " walking in side view, with alternating steps", "English walking description mismatch");
       for (const id of ["awake-art", "sleep-art", "walk-art"]) {
         const art = $(id);
         ok(art.getAttribute("role") === "img" && art.getAttribute("aria-label")?.trim(), "Missing art description: " + id);
@@ -218,7 +221,7 @@ try {
       const radio = document.querySelector('input[name="companion"][value="' + buddy.id + '"]');
       if (radio?.type !== "radio" || radio.disabled || radio.labels.length !== 1 ||
           radio.labels[0].textContent.trim() !== buddy.name ||
-          !radio.closest("fieldset")?.querySelector("legend")?.textContent.trim()) throw new Error("Radio is not natively labelled: " + buddy.id);
+          radio.closest("fieldset")?.querySelector("legend")?.textContent.trim() !== "Choose your buddy") throw new Error("Radio is not natively labelled in English: " + buddy.id);
       for (const id of ["awake-art", "sleep-art", "walk-art"]) {
         if ($(id).querySelectorAll('[data-buddy-art="' + buddy.id + '"]').length !== 1) throw new Error("Missing/duplicate art: " + id + "/" + buddy.id);
       }
@@ -237,6 +240,38 @@ try {
     }
     return "Four labelled native radios, original SVG states and articulated models";
   }, buddies));
+  console.log("Static English copy:", await run(html => {
+    const initial = new DOMParser().parseFromString(html, "text/html");
+    const expected = {
+      ".picker-label": "YOUR BUDDY",
+      ".header-right > span": "A buddy, not a boss.",
+      ".scene-tab[data-mode='water'] strong": "Grab some water",
+      ".scene-tab[data-mode='screen'] strong": "8 hours of screen time",
+      ".scene-tab[data-mode='finish'] strong": "Wrap up the workday",
+      "#bubble-title": "Shall we wrap up?",
+      "#accept": "Yes, done for today",
+      "#snooze": "15 more min",
+      "#replay": "Play again",
+      "label[for='end-time']": "Workday ends at",
+      "#screen-toggle-label": "Reminder after 8 hours",
+      "#water-toggle-label": "Water reminder",
+      ".sound-mark": "Settings apply only to this demo.",
+    };
+    for (const [selector, text] of Object.entries(expected)) {
+      if (initial.querySelector(selector)?.textContent.trim() !== text ||
+          document.querySelector(selector)?.textContent.trim() !== text) throw new Error("English static copy mismatch: " + selector);
+    }
+    for (const [selector, label] of [
+      [".scenes", "Choose a demo moment"],
+      [".preview", "Interactive desktop preview"],
+      [".details", "Explanation and demo settings"],
+      [".bottom", "Design principles"],
+    ]) {
+      if (initial.querySelector(selector)?.getAttribute("aria-label") !== label ||
+          document.querySelector(selector)?.getAttribute("aria-label") !== label) throw new Error("English accessible label mismatch: " + selector);
+    }
+    return "Initial HTML and rendered controls use English text and accessible labels";
+  }, html));
   const accessibility = await send("Accessibility.getFullAXTree");
   const radios = accessibility.nodes.filter(node => !node.ignored && node.role?.value === "radio");
   if (radios.length !== 4 || buddies.some(buddy => !radios.some(node => node.name?.value === buddy.name))) {
@@ -337,6 +372,23 @@ try {
   console.log("Reminder actions and settings:", await run(buddies => {
     const results = [];
     const ok = (name, condition) => { if (!condition) throw new Error(name); results.push(name); };
+    const copy = {
+      water: {
+        title: "Shall we grab some water?", action: "I'll grab a glass", snooze: "In 10 min",
+        meterLabel: "Since the last reminder", meterValue: "60 min",
+        acceptedTitle: "I'll wait right here.", snoozed: "I'll pop back in 10 minutes.",
+      },
+      screen: {
+        title: "The real world is calling.", action: "Step outside", snooze: "15 more min",
+        meterLabel: "Active screen time today", meterValue: "8 h 00",
+        acceptedTitle: "Good plan. Fresh air!", snoozed: "I'll try again in 15 minutes.",
+      },
+      finish: {
+        title: "Shall we wrap up?", action: "Yes, done for today", snooze: "15 more min",
+        meterLabel: "End of the workday", meterValue: "16:45",
+        acceptedTitle: "Pick it up tomorrow.", snoozed: "Another fifteen minutes. I'll find a cosy spot.",
+      },
+    };
     const select = id => document.querySelector('input[value="' + id + '"]').click();
     const scene = mode => document.querySelector('.scene-tab[data-mode="' + mode + '"]').click();
     const settings = () => JSON.stringify(["end-time", "water-toggle", "screen-toggle", "motion-toggle"].map(id =>
@@ -353,6 +405,10 @@ try {
         for (const action of ["accept", "snooze"]) {
           select(id); scene(mode);
           ok(id + "/" + mode + " starts", walkState?.model === walkModels[id] && reminderState === "ready");
+          const expected = copy[mode];
+          ok(id + "/" + mode + " English reminder", $("bubble-title").textContent === expected.title &&
+            $("accept").textContent === expected.action && $("snooze").textContent === expected.snooze &&
+            $("meter-label").textContent === expected.meterLabel && $("meter-value").textContent === expected.meterValue);
           $(action).click();
           const state = action === "accept" ? "accepted" : "snoozed";
           const sleeping = action === "snooze" || mode === "finish";
@@ -365,6 +421,13 @@ try {
               !$("bubble").hidden && pet.classList.contains("sleeping") === sleeping &&
               settings() === unchanged && document.title === "Pawse - " + target.name &&
               $("brand-icon").getAttribute("href") === "#" + target.logo && location.hash === "#" + target.id);
+            ok(id + "/" + mode + "/" + action + " English copy -> " + target.id,
+              action === "accept"
+                ? $("bubble-title").textContent === expected.acceptedTitle &&
+                  $("bubble-label").textContent === target.name + " is keeping your spot warm"
+                : $("bubble-title").textContent === "Of course." && $("bubble-label").textContent === "You set the pace" &&
+                  $("bubble-description").textContent === expected.snoozed &&
+                  $("scene-caption").textContent === "Snooze preview. No real timer runs in this mockup.");
             if (mode === "finish") ok("End time retained: " + target.id, $("wall-clock").textContent === "16:45" && $("meter-value").textContent === "16:45");
           }
           $("replay").click();
@@ -387,6 +450,9 @@ try {
         select(id);
         ok("Disabled " + mode + " retained: " + id, stopped() && $("bubble").hidden &&
           pet.classList.contains("sleeping") && current === mode && settings() === disabledSettings);
+        ok("Disabled " + mode + " English copy: " + id,
+          $("meter-note").textContent === "This reminder is turned off in the demo." &&
+          $("scene-caption").textContent === "Reminder off. " + companions[id].name + " is sleeping peacefully.");
       }
     }
     $("water-toggle").click(); $("screen-toggle").click();

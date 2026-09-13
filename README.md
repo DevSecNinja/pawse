@@ -1,65 +1,65 @@
 # Pawse
 
-Een rustig maatje voor waterpauzes, minder schermtijd en het einde van je werkdag.
-Pawse is een interactieve **browsermockup met Nederlandse UI**, geen desktop-app.
-Kies **Miso**, **Totoro**, **Kawaii pup** of **Labrador**; de productnaam blijft Pawse.
+A gentle buddy for water breaks, less screen time and the end of your workday.
+Pawse is an interactive **browser mockup with an English UI**, not a desktop app.
+Choose **Miso**, **Totoro**, **Kawaii pup** or **Labrador**; the product name stays Pawse.
 
 **Demo:** https://devsecninja.github.io/pawse/
 
-Direct naar [Miso](https://devsecninja.github.io/pawse/#miso),
+Jump straight to [Miso](https://devsecninja.github.io/pawse/#miso),
 [Totoro](https://devsecninja.github.io/pawse/#totoro),
-[Kawaii pup](https://devsecninja.github.io/pawse/#puppy) of
+[Kawaii pup](https://devsecninja.github.io/pawse/#puppy) or
 [Labrador](https://devsecninja.github.io/pawse/#labrador).
 
-## Lokaal starten
+## Running locally
 
-Open `index.html` direct in een moderne browser, of gebruik **Node.js 24.2+**:
+Open `index.html` directly in a modern browser, or use **Node.js 24.2+**:
 
 ```sh
 node serve-pawse.mjs
 ```
 
-Open de getoonde URL. De server luistert alleen op `127.0.0.1` en kiest een vrije
-poort. Met `node serve-pawse.mjs 8080` kies je zelf een poort; stop met Ctrl+C.
-Herstart de server na wijzigingen aan de HTML. Geen installatie, npm-pakketten
-of build nodig. Ook `/pawse/` werkt lokaal, net als op GitHub Pages.
+Open the URL shown. The server listens only on `127.0.0.1` and picks an available
+port. Use `node serve-pawse.mjs 8080` to choose a port; stop with Ctrl+C.
+Restart the server after changing the HTML. No installation, npm packages
+or build required. The `/pawse/` path also works locally, just like on GitHub Pages.
 
-## Bediening en grenzen
+## Controls and limitations
 
-- Kies je maatje bovenaan; de keuze staat in `#miso`, `#totoro`, `#puppy` of
-  `#labrador`. De radioknoppen werken ook met Tab, de pijltjestoetsen en spatie.
-- Probeer de drie momenten: water halen, acht actieve schermuren en werkdag afsluiten.
-- Bevestig, kies snooze of speel de aankomst opnieuw met **Nog een keer**.
-- Pas de eindtijd aan; zet water, het achtuurseintje of wandelen aan/uit.
-  De systeemvoorkeur voor minder beweging wordt ook gerespecteerd.
+- Choose your buddy at the top; the selection is stored in `#miso`, `#totoro`, `#puppy` or
+  `#labrador`. The radio buttons also work with Tab, the arrow keys and Space.
+- Try the three moments: getting water, eight hours of active screen time and wrapping up the workday.
+- Accept, snooze or replay the arrival with **Play again**.
+- Adjust the end time; turn water reminders, the eight-hour reminder or walking on/off.
+  The system's reduced-motion preference is also respected.
 
-De personages, zijaanzichten, afzonderlijk bewegende poten, afwisselende
-looprichtingen, bevestigingen en slaapstanden zijn geanimeerd en interactief.
-Elk maatje heeft eigen, zelfgetekende inline SVG voor avatar, zithouding, slaapstand
-en zijaanzicht, niet alleen een andere kleur. Er zijn geen externe assets, services
-of analytics.
+The characters, side views, independently moving legs, alternating
+walking directions, confirmations and sleeping states are animated and interactive.
+Each buddy has its own hand-drawn inline SVG for its avatar, sitting pose, sleeping
+pose and side view, not just a different colour. There are no external assets, services
+or analytics.
 
-Het bureaublad, de klokken en de gebruiksduur zijn **voorbeelden**. Er is geen
-OS-overlay, echte activiteitsmeting, notificatieplanning of snoozetimer. Er wordt
-niets afgesloten, geblokkeerd of vergrendeld. Instellingen gelden alleen voor de
-huidige pagina en worden niet opgeslagen; alleen de maatjeskeuze zit in de URL.
+The desktop, clocks and usage times are **examples**. There is no
+OS overlay, actual activity tracking, notification scheduling or snooze timer. Nothing
+gets closed, blocked or locked. Settings apply only to the
+current page and are not saved; only the buddy selection is stored in the URL.
 
-## Bestanden en regressiecheck
+## Files and regression check
 
-| Bestand | Inhoud |
+| File | Contents |
 | --- | --- |
-| `index.html` | Hele mockup: CSS, inline SVG en JavaScript. SVG-symbolen bevatten de gezichten; `walk-art` bevat de goedgekeurde zijaanzichten. |
-| `serve-pawse.mjs` | Kleine lokale HTTP-server, ook herbruikbaar door de check. |
-| `check-pawse-motion.mjs` | Bestaande loop- en gedragscheck via headless Edge/Chrome en CDP, zonder extra dependencies. |
-| `.nojekyll` | Statische GitHub Pages-publicatie vanaf `main`, map `/`; geen eigen deploymentworkflow nodig. |
+| `index.html` | The entire mockup: CSS, inline SVG and JavaScript. SVG symbols contain the faces; `walk-art` contains the approved side views. |
+| `serve-pawse.mjs` | Small local HTTP server, also reusable by the check. |
+| `check-pawse-motion.mjs` | Walking and behaviour checks using headless Edge/Chrome and CDP, with no extra dependencies. |
+| `.nojekyll` | Static GitHub Pages publishing from `main`, folder `/`; no custom deployment workflow needed. |
 
-De looplogica staat in `walkModels`, `legPose`, `paintWalk`, `walkProgress`,
-`advanceWalk`, `walkIn` en `stopWalk`. Miso, Kawaii pup en Labrador hebben vier
-afzonderlijke poten en eigen kop-, oor- of staartbewegingen; Totoro heeft een
-zwaardere tweebenige gang. Afstand en
-stappatroon blijven gekoppeld, steunpoten blijven op de grond, en aankomst eindigt
-met het neerzetten van de poten. Onderbreken annuleert de animatie en verplaatsing.
-`applyCompanion` verzorgt de avatar en maatjesteksten, `render` de demo-toestanden.
+The walking logic lives in `walkModels`, `legPose`, `paintWalk`, `walkProgress`,
+`advanceWalk`, `walkIn` and `stopWalk`. Miso, Kawaii pup and Labrador have four
+separate legs and their own head, ear or tail movements; Totoro has a
+heavier two-legged gait. Distance and
+gait stay linked, supporting paws stay planted, and arrival ends
+with the paws settling on the ground. Interrupting cancels the animation and movement.
+`applyCompanion` handles the avatar and buddy-specific copy; `render` handles the demo states.
 
 ```sh
 node check-pawse-motion.mjs
@@ -67,38 +67,38 @@ node check-pawse-motion.mjs --screenshot pawse-walk-frames.png
 node check-pawse-motion.mjs --ui-screenshot pawse-demo.png --screenshot pawse-walk-frames.png
 ```
 
-De check heeft Node.js 24.2+ en een geinstalleerde **Edge, Chrome of Chromium**
-nodig. Hij zoekt gangbare installaties op Windows, macOS en Linux.
-Stel zo nodig `BROWSER_PATH` in op het volledige pad naar het browserprogramma.
-Hij start een eigen tijdelijke loopbackserver en een uniek browserprofiel in de
-tijdelijke systeemmap, en ruimt beide op; bestaande browsers en servers worden
-niet gebruikt of gestopt. De optionele
-schermafbeeldingen blijven op de opgegeven paden en horen niet in de repository.
-`--screenshot` maakt een contactblad met alle vier maatjes: avatar, zithouding,
-slaapstand en vier loopfasen. `--ui-screenshot` bewaart daarvoor de gewone demo.
+The check requires Node.js 24.2+ and an installed copy of **Edge, Chrome or Chromium**.
+It looks for common installations on Windows, macOS and Linux.
+If needed, set `BROWSER_PATH` to the full path of the browser executable.
+It starts its own temporary loopback server and a unique browser profile in the
+system's temporary directory, then cleans up both; existing browsers and servers are
+not used or stopped. Optional
+screenshots remain at the specified paths and do not belong in the repository.
+`--screenshot` creates a contact sheet of all four buddies: avatar, sitting pose,
+sleeping pose and four walking phases. `--ui-screenshot` saves the normal demo first.
 
-De check controleert **14014 IK-houdingen**, vaste botlengtes en minder dan 0,05 px
-verschuiving van steunpoten voor alle vier maatjes in beide richtingen. Verder:
-directe URL-keuze, herladen, hashwissels en onbekende fragmenten; Pawse-naam, avatars,
-toegankelijke labels en echte toetsenbordbediening; bevestigen, snoozen, uitgeschakelde
-herinneringen en behoud van instellingen bij maatjeswissels; onderbreken, aankomst,
-resize, gesimuleerde onzichtbaarheid en reduced motion. Layout en keuzeknoppen worden
-bij 320, 390, 580 en 1280 px getest. Een gepubliceerde versie kan expliciet worden
-gecontroleerd met:
+The check verifies **14014 IK poses**, fixed bone lengths and less than 0.05 px
+of supporting-paw drift for all four buddies in both directions. It also covers:
+direct URL selection, reloads, hash changes and unknown fragments; the Pawse name, avatars,
+English initial and dynamic UI copy, accessible labels and real keyboard controls; accepting, snoozing, disabled
+reminders and settings preservation when switching buddies; interruptions, arrival,
+resizing, simulated page invisibility and reduced motion. Layout and selection controls are
+tested at 320, 390, 580 and 1280 px. A published version can be checked
+explicitly with:
 
 ```sh
 node check-pawse-motion.mjs --url https://devsecninja.github.io/pawse/
 ```
 
-## Later verder
+## Future development
 
-Gebruik dit als bewaard ontwerp en gedragsreferentie. Een volgende stap kan een
-native desktopvenster met echte lokale activiteitssignalen en herinneringen zijn;
-die integratie bestaat hier nog niet. Houd schermtijd en ingestelde eindtijd
-gescheiden en behoud de rustige, optionele bediening.
+Use this as a saved design and behaviour reference. A next step could be a
+native desktop window with real local activity signals and reminders;
+that integration does not exist here yet. Keep screen time and the chosen end time
+separate, and preserve the gentle, optional controls.
 
-**Personagerechten:** Miso, Kawaii pup en Labrador zijn eigen ontwerpen. Totoro is een personage van
-derden; deze zelfgetekende, gestileerde fan-art is een niet-officieel concept,
-zonder affiliatie of goedkeuring. Rechten op Totoro blijven bij de rechthebbenden;
-deze publicatie verleent geen licentie op dat personage. Er is geen algemene
-licentie toegevoegd en er is geen externe referentieafbeelding opgenomen.
+**Character rights:** Miso, Kawaii pup and Labrador are original designs. Totoro is a third-party
+character; this hand-drawn, stylized fan art is an unofficial concept,
+with no affiliation or endorsement. Rights to Totoro remain with their respective holders;
+this publication does not grant a licence to that character. No general
+licence has been added, and no external reference image is included.
