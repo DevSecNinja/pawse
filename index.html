@@ -383,9 +383,20 @@
       <symbol id="labrador-head" viewBox="0 0 100 90">
         <path d="M17 39C13 13 32 9 50 9s37 4 33 30c13 26-2 42-33 42S4 65 17 39Z" fill="#efcf94"/>
         <path d="M34 14q14-7 28 0" fill="none" stroke="#f8e4b9" stroke-width="4" stroke-linecap="round"/>
-        <path class="dog-ear" style="transform-origin:23px 23px" d="M25 18C9 11 4 22 7 36l5 20q5 8 12 0l8-29Z" fill="#cda66f"/>
-        <path class="dog-ear" style="transform-origin:77px 23px;animation-delay:-1.4s" d="M75 18c16-7 21 4 18 18l-5 20q-5 8-12 0l-8-29Z" fill="#d4af77"/>
-        <path d="M15 28q-3 15 3 23m67-23q3 15-3 23" fill="none" stroke="#e6c591" stroke-width="2" stroke-linecap="round"/>
+        <g class="dog-ear" style="transform-origin:23px 18px">
+          <path d="M30 23C28 11 17 3 11 10 4 18 5 29 11 36l12 1Z" fill="#d4af77"/>
+          <path d="M23 20q-7-12-11-4-4 7 1 15l8-1Z" fill="#e6bbb0"/>
+          <path d="M9 22q10-6 21-1c4 6-3 13-8 19q-5 4-8-5Z" fill="#cda66f"/>
+          <path d="M11 22q9-4 17 0" fill="none" stroke="#f2d7a5" stroke-width="2" stroke-linecap="round"/>
+          <path d="M16 34q3 6 6 4" fill="none" stroke="#b99160" stroke-width="1.3" stroke-linecap="round"/>
+        </g>
+        <g class="dog-ear" style="transform-origin:77px 18px;animation-delay:-1.4s">
+          <path d="M70 23C72 11 83 3 89 10c7 8 6 19 0 26l-12 1Z" fill="#dbb982"/>
+          <path d="M77 20q7-12 11-4 4 7-1 15l-8-1Z" fill="#e6bbb0"/>
+          <path d="M91 22q-10-6-21-1c-4 6 3 13 8 19q5 4 8-5Z" fill="#d4af77"/>
+          <path d="M89 22q-9-4-17 0" fill="none" stroke="#f2d7a5" stroke-width="2" stroke-linecap="round"/>
+          <path d="M84 34q-3 6-6 4" fill="none" stroke="#be9966" stroke-width="1.3" stroke-linecap="round"/>
+        </g>
         <path d="M29 58c0-10 10-16 21-10 11-6 21 0 21 10v6c0 19-42 19-42 0Z" fill="#fff0cf"/>
         <path d="M42 53q8-5 16 0c2 7-3 11-8 11s-10-4-8-11Z" fill="#54443a"/>
         <path d="M46 54h5" stroke="#98806a" stroke-width="2" stroke-linecap="round"/>
@@ -596,7 +607,12 @@
                   <path d="M108 72q23 4 19 24c-6 14-19 5-22-4Z" fill="#f5deb0"/>
                   <path d="M46 69q24-4 39 1" fill="none" stroke="#f6dfb2" stroke-width="3" stroke-linecap="round"/>
                   <g id="labrador-walk-head">
-                    <path d="M131 28c14-7 23 5 20 19l-7 15-11-7Z" fill="#c7a16a"/>
+                    <g>
+                      <path d="M131 28c1-12 12-18 17-9 6 10 3 20-3 25l-10-7Z" fill="#c7a16a"/>
+                      <path d="M138 27q4-10 8-4l1 10-7 3Z" fill="#d6aba0"/>
+                      <path d="M132 29q8-6 18-1c2 7-3 13-8 17l-7-8Z" fill="#d4af77"/>
+                      <path d="M135 29q6-3 12 0" fill="none" stroke="#e6c591" stroke-width="1.6" stroke-linecap="round"/>
+                    </g>
                     <path d="M101 48c-2-14 6-24 20-25 19-3 31 7 32 25l-1 7 19 4q9 4 6 12c-3 10-15 11-29 9-19 9-38 3-44-10Z" fill="#efcf94"/>
                     <path d="M135 57c8-4 16-2 19 2l17 1c9 3 8 10 4 14-7 7-21 8-32 3-8-3-14-13-8-20Z" fill="#fff0cf"/>
                     <g class="eye"><ellipse cx="140" cy="45" rx="6" ry="7.3" fill="#9b7449"/><ellipse cx="141" cy="44" rx="4.2" ry="5.6" fill="#3e362d"/><circle cx="139" cy="42" r="1.9" fill="#fffdf4"/><circle cx="143" cy="48" r=".9" fill="#fffdf4"/></g>
@@ -605,7 +621,13 @@
                     <path d="M168 59q6-2 9 2c2 4-1 8-5 8l-5-4Z" fill="#54443a"/>
                     <path d="M171 71q-11 8-21 1" fill="none" stroke="#8f7151" stroke-width="1.8" stroke-linecap="round"/>
                     <path d="M154 75q4 2 8 0v4c-1 6-8 6-8-4Z" fill="#df9d93"/>
-                    <g id="labrador-walk-ear"><path d="M117 29c-13-5-24 4-21 17l5 17q5 10 13 0l10-21q2-8-7-13Z" fill="#cda66f"/><path d="M105 37q-5 10 1 20" fill="none" stroke="#e6c591" stroke-width="2.5" stroke-linecap="round"/></g>
+                    <g id="labrador-walk-ear">
+                      <path d="M120 30c0-11-10-17-18-12-10 9-10 19-4 26l13 3Z" fill="#d4af77"/>
+                      <path d="M111 26q-8-8-12 2l3 12 10-7Z" fill="#e6bbb0"/>
+                      <path d="M96 31q12-7 25-1c4 7-4 14-10 20q-5 5-9-3Z" fill="#cda66f"/>
+                      <path d="M99 31q10-4 20 0" fill="none" stroke="#f2d7a5" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M105 45q3 5 6 3" fill="none" stroke="#b99160" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
                   </g>
                   <path d="M111 77q11 7 19 1" fill="none" stroke="#7b9b8b" stroke-width="5" stroke-linecap="round"/><circle cx="124" cy="85" r="3.5" fill="#d8af64"/>
                 </g>
