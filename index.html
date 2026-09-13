@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Pawse - Miso</title>
+  <style>
+    :root {
+      --paper: #f6f4ed; --ink: #292d28; --muted: #697065; --line: #dddcd2;
+      --green: #355746; --soft-green: #e5ecde; --orange: #c97548;
+      font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); background: var(--paper);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #c97548; outline-offset: 4px; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .page { max-width: 1320px; padding: 30px 46px 25px; margin: auto; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 29px; font-weight: 750; letter-spacing: -1.5px; }
+    .brand svg { width: 39px; height: 39px; }
+    .header-right { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 12px; }
+    .tag { border: 1px solid var(--line); border-radius: 30px; padding: 6px 10px; font-size: 10px; letter-spacing: 1.2px; font-weight: 650; white-space: nowrap; }
+    .buddy-picker { display: flex; align-items: center; gap: 11px; }
+    .picker-label { color: var(--muted); font-size: 9px; letter-spacing: 1.5px; font-weight: 600; }
+    .buddy-switch { display: flex; border: 1px solid #dfe1d5; background: #e9ecdf; padding: 4px; margin: 0; border-radius: 40px; gap: 3px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    .buddy-option { cursor: pointer; }
+    .buddy-option > span { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 15px 5px 9px; border-radius: 30px; color: #6a7564; font-size: 12px; font-weight: 600; transition: background .2s, box-shadow .2s; }
+    .buddy-option svg { width: 31px; height: 31px; }
+    .buddy-option input:checked + span { color: var(--green); background: #fffdf5; box-shadow: 0 2px 6px #3a4f3014; }
+    .buddy-option input:focus-visible + span { outline: 3px solid #c97548; outline-offset: 3px; }
+    .buddy-option:hover > span { color: var(--green); background: #ffffff65; }
+    .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; padding: 30px 0 24px; }
+    .eyebrow { font-size: 10px; letter-spacing: 2px; font-weight: 700; color: var(--green); text-transform: uppercase; }
+    h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -1.9px; line-height: 1.08; font-size: clamp(36px, 4.2vw, 55px); margin: 11px 0 14px; }
+    h1 em { color: var(--green); font-weight: 400; }
+    .intro p { font-size: 14px; color: var(--muted); line-height: 1.7; margin: 0; max-width: 540px; }
+    .handnote { max-width: 180px; font: italic 17px/1.5 Georgia, serif; color: #8a7961; transform: rotate(-5deg); padding-bottom: 15px; }
+    .handnote span { display: block; font-size: 28px; padding-left: 38px; }
+    .scenes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 17px; }
+    .scene-tab { display: flex; gap: 12px; align-items: center; text-align: left; border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 13px 16px; border-radius: 13px; transition: background .2s, border .2s; }
+    .scene-tab:hover { background: #eeeee5; }
+    .scene-tab[aria-pressed="true"] { background: var(--soft-green); color: var(--green); border-color: #a6b79c; }
+    .tab-icon { display: grid; place-items: center; width: 34px; height: 34px; background: #ffffff80; border-radius: 10px; }
+    .tab-copy { flex: 1; }
+    .tab-copy strong { display: block; font-size: 13px; font-weight: 650; }
+    .tab-copy small { font-size: 11px; display: block; margin-top: 3px; }
+    .tab-num { font: 11px Consolas, monospace; opacity: .7; }
+    .demo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 18px; align-items: stretch; }
+    .preview { display: flex; flex-direction: column; min-width: 0; border: 1px solid #d0d1c7; border-radius: 16px; overflow: hidden; background: #e8e7de; box-shadow: 0 8px 24px #2c392409; }
+    .preview-bar { padding: 12px 16px; background: #fcfbf6; display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 10px; letter-spacing: 1.3px; font-weight: 600; }
+    .demo-status { color: var(--muted); font-size: 10px; font-weight: 400; letter-spacing: 0; display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 5px; height: 5px; background: #668365; border-radius: 50%; }
+    .desktop { flex: 1 0 auto; height: 425px; position: relative; overflow: hidden; isolation: isolate; --sky: #e6bd98; background: var(--sky); transition: background .65s; }
+    .desktop[data-scene="water"] { --sky: #c9deda; }
+    .desktop[data-scene="screen"] { --sky: #cfcedc; }
+    .wallpaper { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+    .sun { fill: #fbebc5; transition: transform 1s; }
+    .desktop[data-scene="water"] .sun { transform: translateY(-60px); }
+    .ridge-back { fill: #8faaa0; }
+    .ridge-front { fill: #587e73; }
+    .desktop[data-scene="finish"] .ridge-back { fill: #bb9983; }
+    .desktop[data-scene="finish"] .ridge-front { fill: #7b8374; }
+    .desktop[data-scene="screen"] .ridge-back { fill: #9e9db3; }
+    .desktop[data-scene="screen"] .ridge-front { fill: #7c8595; }
+    .desktop-shortcuts { position: absolute; left: 15px; top: 20px; display: flex; flex-direction: column; gap: 19px; color: #273d37; }
+    .shortcut { width: 45px; text-align: center; font-size: 8px; }
+    .shortcut svg { display: block; margin: 0 auto 5px; width: 27px; height: 27px; fill: #e6ebdcaa; }
+    .work-window { position: absolute; top: 35px; left: 11%; width: 67%; height: 259px; background: #fbfaf6; box-shadow: 0 13px 30px #273c3425; border-radius: 10px; overflow: hidden; transform: rotate(-1.3deg); opacity: .94; }
+    .window-top { height: 29px; display: flex; align-items: center; padding: 0 12px; gap: 5px; border-bottom: 1px solid #e0e0d8; background: #f0efe8; }
+    .window-top i { width: 5px; height: 5px; border-radius: 50%; background: #b7b9af; }
+    .window-top span { font-size: 8px; color: #6e736b; margin: auto; padding-right: 22px; }
+    .window-body { display: flex; height: calc(100% - 29px); }
+    .fake-sidebar { width: 36px; background: #e8ebe3; border-right: 1px solid #dde1d7; display: flex; align-items: center; flex-direction: column; gap: 20px; padding-top: 19px; }
+    .fake-sidebar svg { width: 13px; height: 13px; color: #84917d; }
+    .document { padding: 21px 25px; width: calc(100% - 36px); }
+    .doc-label { color: #8b9787; font-size: 7px; letter-spacing: 1.7px; }
+    .document h2 { font: 23px Georgia, serif; margin: 10px 0 16px; }
+    .document p { font-size: 9px; color: #7d8278; }
+    .task-row { display: flex; align-items: center; gap: 7px; font-size: 9px; margin: 11px 0; color: #7b8176; }
+    .check { width: 11px; height: 11px; border: 1px solid #aabc9e; border-radius: 3px; display: grid; place-items: center; font-size: 8px; color: #617d50; }
+    .task-row.complete span:last-child { text-decoration: line-through; color: #a1a598; }
+    .doc-line { height: 4px; border-radius: 3px; background: #e8e9df; width: 80%; margin-top: 11px; }
+    .sticky { position: absolute; top: 83px; right: 5%; width: 145px; height: 141px; padding: 18px 15px; transform: rotate(5deg); background: #efe3a8; box-shadow: 3px 7px 14px #35472b18; }
+    .sticky::before { content: ""; position: absolute; top: -7px; left: 43px; width: 43px; height: 17px; background: #f7f1d98c; transform: rotate(-7deg); }
+    .sticky small { font-size: 8px; letter-spacing: 1px; color: #8e805a; }
+    .sticky p { font: italic 16px/1.35 Georgia, serif; margin-top: 12px; color: #736745; }
+    .ambient-clock { position: absolute; right: 21px; bottom: 73px; text-align: right; color: #fff8e9; opacity: .7; }
+    .ambient-clock strong { font-size: 38px; font-weight: 250; letter-spacing: -1.5px; }
+    .ambient-clock div { font-size: 10px; }
+    .taskbar { position: absolute; bottom: 0; width: 100%; height: 39px; background: #f2f1e4bd; backdrop-filter: blur(12px); border-top: 1px solid #ffffff50; display: flex; justify-content: center; align-items: center; gap: 14px; }
+    .taskbar .app { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; background: #d7e2d7; color: #4b775e; }
+    .taskbar .app:nth-child(2) { background: #e8c47e; color: #92703b; }
+    .taskbar .app:nth-child(3) { background: #a0b5cc; color: #f6f5e7; }
+    .taskbar .app:nth-child(4) { background: #f2ead8; color: #383e33; }
+    .taskbar .icon { width: 12px; height: 12px; }
+    .tray { position: absolute; right: 13px; display: flex; align-items: center; gap: 8px; font-size: 9px; color: #52614e; }
+    .tray .icon { width: 12px; height: 12px; }
+    .pet-shell { position: absolute; bottom: 43px; left: 38%; width: 195px; height: 133px; z-index: 4; }
+    .pet-shell.walking { will-change: transform; }
+    .cat-art { width: 155px; height: 131px; overflow: visible; position: absolute; left: 0; bottom: 0; filter: drop-shadow(0 5px 2px #253b3220); }
+    .walk-art { display: none; width: 180px; height: 140px; position: absolute; left: -12px; bottom: 0; overflow: visible; }
+    .pet-shell.walking .walk-art { display: block; }
+    .pet-shell.walking .cat-art { display: none; }
+    .pet-shell.walking[data-facing="left"] .walk-art { transform: scaleX(-1); }
+    .pet-shell.walking[data-facing="left"] .accessory { left: -61px; }
+    .walk-leg > path { fill: none; stroke: #414b3e; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+    .walk-leg.far > path { stroke: #303c31; stroke-width: 9; }
+    .walk-paw ellipse { fill: #fff3de; }
+    .walk-leg.far .walk-paw ellipse { fill: #dcd4bf; }
+    .walk-paw path { stroke: #d2c5ad; stroke-width: 1; stroke-linecap: round; fill: none; }
+    [data-walk-model="totoro"] .walk-leg > path { stroke: #81968a; stroke-width: 15; }
+    [data-walk-model="totoro"] .walk-leg.far > path { stroke: #6f8378; }
+    [data-walk-model="totoro"] .walk-paw ellipse { fill: #81968a; }
+    [data-walk-model="totoro"] .walk-leg.far .walk-paw ellipse { fill: #6f8378; }
+    [data-walk-model="totoro"] .walk-paw path { stroke: #eee6d2; stroke-width: 1.5; }
+    .cat-body { transform-origin: 85px 100px; animation: breathe 3.5s ease-in-out infinite; }
+    [data-buddy-art] { display: none; }
+    body[data-companion="miso"] [data-buddy-art="miso"],
+    body[data-companion="totoro"] [data-buddy-art="totoro"] { display: inline; }
+    @keyframes breathe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.8px); } }
+    .tail { transform-origin: 46px 83px; animation: tail-sway 3.5s ease-in-out infinite; }
+    @keyframes tail-sway { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(9deg); } }
+    .eye { transform-box: fill-box; transform-origin: center; animation: blink 6s infinite; }
+    @keyframes blink { 0%,43%,47%,100% { transform: scaleY(1); } 45% { transform: scaleY(.12); } }
+    .sleep-art { display: none; position: absolute; width: 177px; height: 120px; left: -5px; bottom: -2px; filter: drop-shadow(0 5px 3px #33432d18); }
+    .pet-shell.sleeping .cat-art, .pet-shell.sleeping .accessory { display: none; }
+    .pet-shell.sleeping .sleep-art { display: block; }
+    .sleep-z { font: 14px Georgia, serif; fill: #f5f2df; animation: float-z 3s ease-in-out infinite; }
+    @keyframes float-z { 0%,100% { opacity: .5; transform: translateY(2px); } 50% { opacity: 1; transform: translateY(-5px); } }
+    .accessory { position: absolute; bottom: 1px; left: 126px; width: 62px; height: 48px; }
+    .bowl-art, .bed-art, .shoe-art { display: none; width: 100%; height: 100%; }
+    [data-scene="water"] .bowl-art, [data-scene="finish"] .bed-art, [data-scene="screen"] .shoe-art { display: block; }
+    .bubble { position: absolute; bottom: 139px; left: -10px; width: 278px; background: #fffdf5; padding: 17px 18px 14px; border: 1px solid #eee9dc; border-radius: 15px 15px 15px 4px; box-shadow: 0 8px 26px #24332820; transition: opacity .3s, transform .3s; }
+    .bubble::after { content: ""; position: absolute; bottom: -7px; left: 25px; width: 12px; height: 12px; background: #fffdf5; border-right: 1px solid #eee9dc; border-bottom: 1px solid #eee9dc; transform: rotate(45deg); }
+    .walking .bubble { opacity: 0; transform: translateY(6px); pointer-events: none; visibility: hidden; }
+    .bubble-meta { display: flex; align-items: center; gap: 6px; color: #8b7958; font-size: 8px; letter-spacing: 1.25px; text-transform: uppercase; }
+    .bubble-meta .icon { width: 11px; height: 11px; }
+    .bubble h3 { font: 21px/1.15 Georgia, serif; letter-spacing: -.5px; margin: 9px 0 7px; }
+    .bubble p { margin: 0; font-size: 10px; line-height: 1.6; color: #7a7c70; }
+    .bubble-actions { display: flex; gap: 7px; margin-top: 12px; align-items: center; }
+    .primary { border: 0; background: var(--green); color: #fffdf3; padding: 8px 11px; border-radius: 7px; font-size: 10px; font-weight: 600; }
+    .secondary { border: 0; background: transparent; color: #787c6f; padding: 8px; font-size: 10px; }
+    .primary:hover { background: #254837; }
+    .secondary:hover { background: #f0eee3; border-radius: 7px; }
+    .bubble-actions[hidden] { display: none; }
+    .preview-footer { display: flex; align-items: center; gap: 8px; padding: 11px 15px; background: #fcfbf6; font-size: 10px; color: var(--muted); min-height: 43px; }
+    .preview-footer > .icon { width: 14px; height: 14px; color: var(--green); }
+    .replay { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; background: none; border: 0; color: var(--green); padding: 4px; font-size: 10px; white-space: nowrap; }
+    .replay .icon { width: 12px; height: 12px; }
+    .details { background: #eeeee4; border: 1px solid #dedfd2; border-radius: 16px; padding: 22px 20px 17px; display: flex; flex-direction: column; }
+    .detail-kicker { font-size: 9px; font-weight: 600; letter-spacing: 1.8px; color: var(--muted); }
+    .details h2 { font: 28px/1.15 Georgia, serif; letter-spacing: -.7px; margin: 12px 0 9px; }
+    .detail-description { font-size: 12px; line-height: 1.7; color: var(--muted); margin: 0; min-height: 81px; }
+    .meter-card { background: #f9f8f1; padding: 14px; margin: 18px 0; border-radius: 10px; border: 1px solid #e3e4d7; }
+    .meter-top { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--muted); }
+    .meter-top strong { color: var(--green); font-size: 11px; }
+    .meter { height: 5px; border-radius: 8px; background: #e7e9df; margin: 11px 0 8px; overflow: hidden; }
+    .meter div { width: 100%; height: 100%; background: #8b9e79; transition: width .4s; }
+    .meter-note { font-size: 9px; color: #7c8173; line-height: 1.5; }
+    .settings { display: flex; flex-direction: column; gap: 13px; }
+    .setting { display: flex; align-items: center; justify-content: space-between; font-size: 11px; gap: 10px; }
+    .setting .label { color: #4f5949; }
+    input[type="time"] { border: 1px solid #d9ddcc; border-radius: 6px; padding: 5px 6px; background: #fafaf2; color: var(--green); font-size: 11px; max-width: 110px; }
+    .switch { position: relative; border: 0; height: 19px; width: 32px; border-radius: 16px; background: #b8bdaf; padding: 0; flex: none; }
+    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 13px; height: 13px; border-radius: 50%; background: #fffdf5; transition: transform .2s; }
+    .switch[aria-checked="true"] { background: #5b7955; }
+    .switch[aria-checked="true"]::after { transform: translateX(13px); }
+    .divider { border: 0; border-top: 1px solid #d8dccd; margin: 18px 0 15px; }
+    .gentle-note { font-size: 11px; line-height: 1.65; margin-top: auto; color: #748069; display: flex; gap: 9px; padding-top: 17px; }
+    .gentle-note .icon { width: 16px; height: 16px; margin-top: 2px; }
+    .bottom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 24px 2px 20px; }
+    .principle { display: flex; gap: 10px; align-items: flex-start; }
+    .principle > .icon { width: 18px; height: 18px; color: #8a936f; margin-top: 2px; }
+    .principle strong { font-size: 11px; font-weight: 600; }
+    .principle p { margin: 4px 0 0; font-size: 10px; line-height: 1.65; color: var(--muted); }
+    .page-footer { border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; padding-top: 15px; font-size: 9px; color: #868a7d; }
+    .sound-mark { color: #8e947f; font-size: 10px; white-space: nowrap; }
+    .reduced-motion *, .reduced-motion *::after { animation: none !important; transition: none !important; }
+    @media (prefers-reduced-motion: reduce) { *, *::after { animation: none !important; transition: none !important; } }
+    @media (min-width: 1450px) { .page { padding-top: 42px; } .intro { padding-top: 40px; padding-bottom: 32px; } .desktop { height: 467px; } .work-window { top: 50px; height: 280px; } }
+    @media (max-width: 1020px) {
+      .page { padding: 24px; } .demo-layout { grid-template-columns: minmax(0, 1fr); }
+      .header-right > span:first-child { display: none; } .picker-label { display: none; }
+      .details { display: grid; grid-template-columns: 1fr 1fr; gap: 0 25px; }
+      .detail-heading { grid-column: 1; } .details h2 { font-size: 25px; }
+      .detail-description { min-height: 0; } .meter-card { grid-column: 1; margin-bottom: 0; }
+      .settings { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+      .divider { display: none; } .gentle-note { grid-column: 1 / -1; }
+      .desktop { height: 440px; } .work-window { width: 65%; height: 280px; } .sticky { right: 8%; }
+    }
+    @media (max-width: 580px) {
+      .page { padding: 18px 14px; } header { padding-bottom: 15px; } .header-right > span:first-child { display: none; }
+      .buddy-picker { order: 3; flex-basis: 100%; justify-content: center; gap: 12px; }
+      .picker-label { display: block; } .buddy-switch { flex: 1; max-width: 270px; } .buddy-option { flex: 1; }
+      .intro { padding: 23px 0; } .handnote { display: none; } h1 { font-size: 37px; }
+      .intro p { font-size: 12px; } .scenes { gap: 6px; } .scene-tab { padding: 11px 8px; flex-direction: column; gap: 7px; text-align: center; }
+      .tab-icon { width: 29px; height: 29px; } .tab-copy strong { font-size: 11px; } .tab-copy small { font-size: 9px; } .tab-num { display: none; }
+      .desktop { height: 405px; } .work-window { left: 12%; width: 77%; top: 35px; height: 238px; }
+      .document { padding: 20px 15px; } .document h2 { font-size: 20px; }
+      .sticky { display: none; } .desktop-shortcuts { left: 5px; } .shortcut { width: 30px; font-size: 7px; }
+      .shortcut svg { width: 21px; height: 21px; } .pet-shell { left: 28%; }
+      .bubble { width: 235px; left: -38px; padding: 15px; } .bubble h3 { font-size: 20px; }
+      .ambient-clock { right: 13px; bottom: 64px; } .ambient-clock strong { font-size: 30px; }
+      .preview-bar { padding: 12px; font-size: 9px; letter-spacing: .9px; } .demo-status { font-size: 9px; }
+      .preview-footer { font-size: 9px; gap: 5px; padding: 10px; } .replay { font-size: 9px; }
+      .details { padding: 19px 16px; gap: 0 18px; } .details h2 { font-size: 24px; }
+      .detail-description { font-size: 11px; } .setting { font-size: 10px; }
+      .bottom { grid-template-columns: 1fr; gap: 14px; padding: 21px 4px; }
+      .principle p { font-size: 11px; } .page-footer { font-size: 9px; line-height: 1.6; }
+    }
+    @media (max-width: 370px) {
+      .details { display: flex; } .meter-card { margin-bottom: 18px; } .settings { align-self: stretch; }
+      .pet-shell { left: 23%; } .bubble { width: 218px; left: -37px; } .preview-footer > span { max-width: 115px; }
+    }
+  </style>
+</head>
+<body data-companion="miso">
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 3S5.5 10 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 10 12 3 12 3Z"/><path d="M9 15a3 3 0 0 0 3 3"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10 10.5Z"/><path d="m17 3 .5 2 2 .5-2 .5-.5 2-.5-2-2-.5 2-.5Z"/></symbol>
+      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4C8 2 3 7 5 14s13 6 14-10Z"/><path d="M4 21 15 9"/></symbol>
+      <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9S4 17 4 12V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 4 5 9H2v6h3l6 5V4ZM16 9l6 6m0-6-6 6"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5h7l2 3h9v12H3Z"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5ZM9 11h6m-6 4h6"/></symbol>
+      <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6 13a9 9 0 0 1 12 0m-8 4a3 3 0 0 1 4 0"/><circle cx="12" cy="20" r=".5"/></symbol>
+      <symbol id="i-paw" viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4"/><ellipse cx="5" cy="10" rx="2" ry="2.5"/><ellipse cx="10" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="20" cy="11" rx="2" ry="2.5"/></symbol>
+      <symbol id="miso-head" viewBox="0 0 100 100">
+        <path d="M8 42 7 14Q7 7 14 11l18 12Q50 16 68 23l18-12q7-4 7 3l-1 28c17 18 7 51-42 51S-9 60 8 42Z" fill="#3b433b"/>
+        <path d="M14 20q-1-5 4-2l11 10-14 7ZM86 20q1-5-4-2L71 28l14 7Z" fill="#dda5a0"/>
+        <path d="M43 25q5 3 7 0m2 3q4 2 7-1" fill="none" stroke="#66705b" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M31 74c-2-14 12-17 19-9 7-8 21-5 19 9-2 19-36 19-38 0Z" fill="#fff3de"/>
+        <ellipse cx="16" cy="69" rx="7" ry="4" fill="#d99a98" opacity=".8"/>
+        <ellipse cx="84" cy="69" rx="7" ry="4" fill="#d99a98" opacity=".8"/>
+        <path d="m7 62-5-1m5 6-5 1m91-6 5-1m-5 6 5 1" fill="none" stroke="#e7ddc8" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M45 69c-2-4 3-5 5-2 2-3 7-2 5 2l-5 5Z" fill="#cb8e88"/>
+        <path d="M50 74v3m-10-1q4 7 10 1 6 6 10-1" fill="none" stroke="#746153" stroke-width="1.9" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="miso-face" viewBox="0 0 100 100">
+        <use href="#miso-head"/>
+        <g class="eye">
+          <g transform="translate(30 51) scale(.8) translate(-30 -51)">
+            <ellipse cx="30" cy="51" rx="13" ry="15" fill="#d5dfb1"/>
+            <ellipse cx="31" cy="51" rx="9.5" ry="12" fill="#26352f"/>
+            <circle cx="27" cy="46" r="4.3" fill="#fffdf4"/>
+            <circle cx="35" cy="57" r="2" fill="#fffdf4"/>
+          </g>
+          <g transform="translate(70 51) scale(.8) translate(-70 -51)">
+            <ellipse cx="70" cy="51" rx="13" ry="15" fill="#d5dfb1"/>
+            <ellipse cx="69" cy="51" rx="9.5" ry="12" fill="#26352f"/>
+            <circle cx="65" cy="46" r="4.3" fill="#fffdf4"/>
+            <circle cx="73" cy="57" r="2" fill="#fffdf4"/>
+          </g>
+        </g>
+      </symbol>
+      <symbol id="miso-sleep-face" viewBox="0 0 100 100">
+        <use href="#miso-head"/>
+        <path d="M19 52q10 13 22 0m18 0q10 13 22 0" fill="none" stroke="#eee9d5" stroke-width="3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="cat-logo" viewBox="0 0 100 100"><use href="#miso-face"/></symbol>
+      <radialGradient id="totoro-fur" cx="38%" cy="24%" r="85%">
+        <stop offset="0" stop-color="#b3bbb4"/><stop offset=".55" stop-color="#939f98"/><stop offset="1" stop-color="#72857d"/>
+      </radialGradient>
+      <radialGradient id="totoro-belly" cx="44%" cy="30%" r="78%">
+        <stop offset="0" stop-color="#fff8e3"/><stop offset="1" stop-color="#e5ddc3"/>
+      </radialGradient>
+      <symbol id="totoro-base" viewBox="0 0 165 140">
+        <g class="leg-a"><ellipse cx="60" cy="126" rx="15" ry="8" fill="#7f9087"/><path d="m54 128 2 3m5-3 1 3m5-4 1 3" stroke="#e9e5d4" stroke-width="1.6" stroke-linecap="round"/></g>
+        <g class="leg-b"><ellipse cx="105" cy="126" rx="15" ry="8" fill="#7f9087"/><path d="m99 128 2 3m5-3 1 3m5-4 1 3" stroke="#e9e5d4" stroke-width="1.6" stroke-linecap="round"/></g>
+        <path d="M54 40 51 15Q50 3 56 5q8 4 14 31m25 0q6-27 14-31 6-2 5 10l-3 25" fill="#99a59d"/>
+        <path d="m57 15 5 18m42 0 5-18" fill="none" stroke="#c0c3b2" stroke-width="4" stroke-linecap="round"/>
+        <path d="M43 58C44 20 121 20 122 58c17 26 20 73-39 73S26 84 43 58Z" fill="url(#totoro-fur)"/>
+        <ellipse cx="83" cy="97" rx="35" ry="30" fill="url(#totoro-belly)"/>
+        <path d="m65 84 5-4 5 4m8-6 5-3 5 3m7 7 5-4 5 4m-49 13 4-3 4 3m7-3 4-3 4 3m7 1 4-3 4 3m8 2 4-3 4 3" fill="none" stroke="#96a499" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M42 72q-18 8-12 25c5 11 15 1 16-10" fill="#91a097"/>
+        <path d="M122 72q18 8 12 25c-5 11-15 1-16-10" fill="#87998f"/>
+        <path d="m29 94 2 3m3-2 2 3m96-4-2 3m-3-2-2 3" stroke="#e9e5d4" stroke-width="1.5" stroke-linecap="round"/>
+        <ellipse cx="51" cy="66" rx="8" ry="4" fill="#d9a7a0" opacity=".8"/>
+        <ellipse cx="114" cy="66" rx="8" ry="4" fill="#d9a7a0" opacity=".8"/>
+        <path d="M78 59q5-4 10 0l-5 5Z" fill="#43594f"/>
+        <path d="M75 67q8 8 16 0" fill="none" stroke="#526359" stroke-width="2" stroke-linecap="round"/>
+        <path d="m44 60-14-3m13 8-14 2m93-7 14-3m-13 8 14 2" fill="none" stroke="#627a6b" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M77 29c-2-13 16-21 30-15-4 15-17 20-30 15Z" fill="#91b576"/>
+        <path d="m75 35 22-15m-11 8 0-5" fill="none" stroke="#648956" stroke-width="1.6" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="totoro-standing" viewBox="0 0 165 140">
+        <use href="#totoro-base"/>
+        <g class="eye">
+          <g transform="translate(64 51) scale(.8) translate(-64 -51)">
+            <ellipse cx="64" cy="51" rx="10" ry="11" fill="#fff9e8"/>
+            <ellipse cx="66" cy="52" rx="6.5" ry="8" fill="#344c42"/>
+            <circle cx="63" cy="48.5" r="2.8" fill="#fffef8"/>
+            <circle cx="69" cy="55" r="1.3" fill="#fffef8"/>
+          </g>
+          <g transform="translate(101 51) scale(.8) translate(-101 -51)">
+            <ellipse cx="101" cy="51" rx="10" ry="11" fill="#fff9e8"/>
+            <ellipse cx="99" cy="52" rx="6.5" ry="8" fill="#344c42"/>
+            <circle cx="96" cy="48.5" r="2.8" fill="#fffef8"/>
+            <circle cx="102" cy="55" r="1.3" fill="#fffef8"/>
+          </g>
+        </g>
+      </symbol>
+      <symbol id="totoro-sleeping" viewBox="0 0 165 140">
+        <use href="#totoro-base"/>
+        <path d="M56 49q8 10 16 0m21 0q8 10 16 0" fill="none" stroke="#43594f" stroke-width="2.4" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="totoro-logo" viewBox="0 0 165 140"><use href="#totoro-standing"/></symbol>
+    </defs>
+  </svg>
+  <main class="page">
+    <header>
+      <div class="brand"><svg aria-hidden="true"><use id="brand-icon" href="#cat-logo"/></svg><span id="brand-name">Pawse</span><span style="color:#b6b99f">.</span></div>
+      <div class="buddy-picker">
+        <span class="picker-label" aria-hidden="true">JE MAATJE</span>
+        <fieldset class="buddy-switch">
+          <legend class="sr-only">Kies je maatje</legend>
+          <label class="buddy-option"><input class="sr-only" type="radio" name="companion" value="miso" checked><span><svg aria-hidden="true"><use href="#cat-logo"/></svg>Miso</span></label>
+          <label class="buddy-option"><input class="sr-only" type="radio" name="companion" value="totoro"><span><svg aria-hidden="true"><use href="#totoro-logo"/></svg>Totoro</span></label>
+        </fieldset>
+      </div>
+      <div class="header-right"><span>Een maatje, geen manager.</span><span class="tag">INTERACTIEF CONCEPT / 01</span></div>
+    </header>
+    <section class="intro">
+      <div>
+        <div class="eyebrow">Een beetje Felix-nostalgie. Een beetje beter voor jezelf.</div>
+        <h1>Je werk mag<br><em>even wachten.</em></h1>
+        <p><span id="intro-character">Een klein katje op je bureaublad.</span> Voor een glas water, een rondje lopen<br class="wide-break"> en dat ene laatste tabblad dat ook morgen nog kan.</p>
+      </div>
+      <div class="handnote">Hij heeft geen haast.<br>Jij hoeft dat ook niet.<span>&#10549;</span></div>
+    </section>
+    <nav class="scenes" aria-label="Kies een voorbeeldmoment">
+      <button class="scene-tab" data-mode="water" aria-pressed="false">
+        <span class="tab-icon"><svg class="icon"><use href="#i-water"/></svg></span>
+        <span class="tab-copy"><strong>Even water halen</strong><small>Een kleine herinnering</small></span><span class="tab-num">01</span>
+      </button>
+      <button class="scene-tab" data-mode="screen" aria-pressed="false">
+        <span class="tab-icon"><svg class="icon"><use href="#i-clock"/></svg></span>
+        <span class="tab-copy"><strong>8 uur schermtijd</strong><small>Tijd voor de echte wereld</small></span><span class="tab-num">02</span>
+      </button>
+      <button class="scene-tab" data-mode="finish" aria-pressed="true">
+        <span class="tab-icon"><svg class="icon"><use href="#i-moon"/></svg></span>
+        <span class="tab-copy"><strong>Werkdag afsluiten</strong><small>Morgen is er weer een dag</small></span><span class="tab-num">03</span>
+      </button>
+    </nav>
+    <div class="demo-layout">
+      <section class="preview" aria-label="Interactief voorbeeld van je bureaublad">
+        <div class="preview-bar"><span>JOUW BUREAUBLAD, MET GEZELSCHAP</span><span class="demo-status"><i class="status-dot"></i>Demo &middot; fictieve tijden</span></div>
+        <div class="desktop" id="desktop" data-scene="finish">
+          <svg class="wallpaper" viewBox="0 0 900 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <circle class="sun" cx="740" cy="155" r="76"/>
+            <path class="ridge-back" d="M0 310C160 170 275 405 438 248S730 214 900 162V500H0Z"/>
+            <path class="ridge-front" d="M0 408C166 290 229 388 375 342S710 296 900 394V500H0Z"/>
+            <path d="M0 453Q330 339 620 462T1000 440" fill="none" stroke="#faf4da" stroke-opacity=".12" stroke-width="1.5"/>
+          </svg>
+          <div class="desktop-shortcuts" aria-hidden="true">
+            <div class="shortcut"><svg class="icon"><use href="#i-folder"/></svg>Projecten</div>
+            <div class="shortcut"><svg class="icon"><use href="#i-note"/></svg>Idee&euml;n</div>
+          </div>
+          <div class="work-window" aria-hidden="true">
+            <div class="window-top"><i></i><i></i><i></i><span>Mijn werkruimte &nbsp; / &nbsp; Vandaag</span></div>
+            <div class="window-body">
+              <div class="fake-sidebar"><svg class="icon"><use href="#i-grid"/></svg><svg class="icon"><use href="#i-note"/></svg><svg class="icon"><use href="#i-folder"/></svg></div>
+              <div class="document">
+                <div class="doc-label">EEN DING TEGELIJK</div><h2>Een mooie werkdag.</h2>
+                <div class="task-row complete"><span class="check">&#10003;</span><span>Dat lastige probleem oplossen</span></div>
+                <div class="task-row complete"><span class="check">&#10003;</span><span>Iets maken waar je blij van wordt</span></div>
+                <div class="task-row"><span class="check"></span><span>Nog heel even &eacute;&eacute;n ding...</span></div>
+                <div class="doc-line"></div><div class="doc-line" style="width:55%"></div>
+                <p>Concept opgeslagen &middot; zojuist</p>
+              </div>
+            </div>
+          </div>
+          <div class="sticky" aria-hidden="true"><small>NIET VERGETEN</small><p>Er is ook een<br>wereld buiten<br>dit scherm.</p></div>
+          <div class="ambient-clock" aria-hidden="true"><strong id="wall-clock">17:30</strong><div>jouw tijd is ook tijd</div></div>
+          <div class="pet-shell" id="pet">
+            <div class="bubble" id="bubble" role="status" aria-live="polite" aria-atomic="true">
+              <div class="bubble-meta"><svg class="icon"><use id="bubble-icon" href="#i-moon"/></svg><span id="bubble-label">Miso vindt het mooi geweest</span></div>
+              <h3 id="bubble-title">Zullen we afronden?</h3>
+              <p id="bubble-description">Je hebt genoeg gedaan vandaag.<br>Ik ga alvast naar mijn mandje.</p>
+              <div class="bubble-actions" id="bubble-actions"><button class="primary" id="accept">Ja, klaar voor vandaag</button><button class="secondary" id="snooze">Nog 15 min</button></div>
+            </div>
+            <svg class="cat-art" id="awake-art" viewBox="0 0 165 140" role="img" aria-label="Miso, een rond, pluizig katje met grote glanzende ogen, roze wangetjes en witte sokjes">
+              <ellipse cx="82" cy="132" rx="59" ry="5" fill="#354632" opacity=".12"/>
+              <g data-buddy-art="miso"><g class="cat-body">
+                <path class="tail" d="M46 99C19 99 12 83 18 69c5-12 2-22-7-18" fill="none" stroke="#414b3e" stroke-width="15" stroke-linecap="round"/>
+                <g class="leg-b"><rect x="43" y="105" width="17" height="24" rx="8" fill="#323b32"/><ellipse cx="51" cy="126" rx="10" ry="6" fill="#e8dec9"/></g>
+                <g class="leg-a"><rect x="94" y="104" width="16" height="25" rx="8" fill="#323b32"/><ellipse cx="102" cy="126" rx="10" ry="6" fill="#e8dec9"/></g>
+                <ellipse cx="77" cy="96" rx="39" ry="29" fill="#414b3e"/>
+                <ellipse cx="96" cy="102" rx="17" ry="19" fill="#fff3de"/>
+                <g class="leg-a"><rect x="61" y="105" width="18" height="25" rx="9" fill="#414b3e"/><ellipse cx="70" cy="127" rx="11" ry="6" fill="#fff5e2"/><path d="M67 128v3m6-3v3" stroke="#ddcdb8" stroke-width="1.1" stroke-linecap="round"/></g>
+                <g class="leg-b"><rect x="108" y="104" width="18" height="26" rx="9" fill="#414b3e"/><ellipse cx="117" cy="127" rx="11" ry="6" fill="#fff5e2"/><path d="M114 128v3m6-3v3" stroke="#ddcdb8" stroke-width="1.1" stroke-linecap="round"/></g>
+                <path d="M86 89q18 13 41-2" fill="none" stroke="#9bb68a" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="108" cy="98" r="5" fill="#e2bf72"/><circle cx="106.5" cy="96.5" r="1.4" fill="#fff0bc"/>
+                <svg x="62" y="1" width="99" height="99" viewBox="0 0 100 100"><use href="#miso-face"/></svg>
+              </g></g>
+              <g data-buddy-art="totoro"><g class="cat-body"><use href="#totoro-standing"/></g></g>
+            </svg>
+            <svg class="walk-art" id="walk-art" viewBox="0 0 180 140" role="img" aria-label="Miso loopt in zijaanzicht">
+              <ellipse cx="90" cy="133" rx="66" ry="4" fill="#304536" opacity=".14"/>
+              <g data-buddy-art="miso" data-walk-model="miso">
+                <g class="walk-leg far" data-leg="hind-far"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="7" ry="4"/><path d="M3 3v3m4-3v3"/></g></g>
+                <g class="walk-leg far" data-leg="front-far"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="7" ry="4"/><path d="M3 3v3m4-3v3"/></g></g>
+                <g id="miso-walk-body">
+                  <path id="miso-walk-tail" d="M53 82C21 84 9 62 15 48q5-15-5-13" fill="none" stroke="#414b3e" stroke-width="12" stroke-linecap="round"/>
+                  <path d="M43 82c0-30 43-34 70-19 14 5 24 29 10 40-13 13-41 7-52 5-18 2-32-8-28-26Z" fill="#414b3e"/>
+                  <path d="M111 73c19 5 22 28 6 34-15-2-21-18-6-34Z" fill="#fff3de"/>
+                  <path d="M51 72q20-12 40-9" fill="none" stroke="#5a6551" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+                  <g id="miso-walk-head">
+                    <path d="m126 40 2-15q1-5 5-1l8 17Z" fill="#303c31"/>
+                    <path d="M111 44V26q0-5 4-3l13 11q17-4 29 9 5 7 1 15l4 5q2 4-3 7-2 12-17 16c-18 5-34-6-36-21q-2-12 5-21Z" fill="#3b433b"/>
+                    <path d="M115 30q-1-3 2-1l8 8-10 4Z" fill="#dda5a0"/>
+                    <path d="M127 40q4-3 8-1" fill="none" stroke="#657058" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M140 63c4-4 12-3 16 1 7 4 6 12-2 15-13 6-25-4-18-12Z" fill="#fff3de"/>
+                    <g class="eye"><ellipse cx="144" cy="52" rx="7.3" ry="8.5" fill="#d5dfb1"/><ellipse cx="146" cy="52" rx="4.7" ry="6.3" fill="#26352f"/><circle cx="144" cy="49" r="2.2" fill="#fffdf4"/><circle cx="148" cy="55" r="1.1" fill="#fffdf4"/></g>
+                    <ellipse cx="129" cy="69" rx="6" ry="3.5" fill="#d99a98" opacity=".8"/>
+                    <path d="M155 63q3-3 6 0l-3 3Z" fill="#cb8e88"/><path d="M158 66v2q-3 6-8 3" fill="none" stroke="#746153" stroke-width="1.4" stroke-linecap="round"/>
+                    <path d="m149 72 19-1m-18 5 16 3" fill="none" stroke="#eee4d0" stroke-width="1.2" stroke-linecap="round"/>
+                  </g>
+                  <path d="M110 80q11 11 24 1" fill="none" stroke="#9bb68a" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="125" cy="89" r="3.7" fill="#e2bf72"/>
+                </g>
+                <g class="walk-leg" data-leg="hind-near"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="8" ry="4"/><path d="M3 3v3m4-3v3"/></g></g>
+                <g class="walk-leg" data-leg="front-near"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="8" ry="4"/><path d="M3 3v3m4-3v3"/></g></g>
+              </g>
+              <g data-buddy-art="totoro" data-walk-model="totoro">
+                <g class="walk-leg far" data-leg="far"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="10" ry="5"/><path d="M3 3v3m4-3v3m4-3v3"/></g></g>
+                <g id="totoro-walk-body">
+                  <path d="M53 97q-18 7-11 19 8 10 22-2" fill="#798d81"/>
+                  <path d="M65 42C46 47 40 79 47 103c-1 24 76 31 81 1 10-32-13-66-36-67Z" fill="url(#totoro-fur)"/>
+                  <ellipse cx="102" cy="96" rx="24" ry="29" fill="url(#totoro-belly)"/>
+                  <path d="m94 83 4-3 4 3m8 1 4-3 4 3m-29 10 4-3 4 3m8 1 4-3 4 3m4 3 4-3 3 3" fill="none" stroke="#96a499" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <g id="totoro-walk-head">
+                    <path d="m67 43-5-27q-1-11 5-9 8 5 12 33" fill="#82978b"/>
+                    <path d="m84 37 3-29q1-8 6-5 7 8 5 37" fill="#a6b2a8"/>
+                    <path d="m90 12 1 21" fill="none" stroke="#d0d0b8" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M60 52q-2-23 29-21c18-1 26 10 31 21l12 6q8 7-4 12l-4 3q-23 10-47 0Z" fill="url(#totoro-fur)"/>
+                    <g class="eye"><ellipse cx="110" cy="49" rx="7.5" ry="8.5" fill="#fff9e8"/><ellipse cx="112" cy="50" rx="4.8" ry="6" fill="#344c42"/><circle cx="110" cy="47" r="2" fill="#fffef8"/><circle cx="114" cy="52" r="1" fill="#fffef8"/></g>
+                    <ellipse cx="98" cy="64" rx="7" ry="3.5" fill="#d9a7a0"/>
+                    <path d="m128 56 7 3-6 4Z" fill="#43594f"/><path d="M128 65q-2 5-9 3" fill="none" stroke="#526359" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="m121 68 20 1m-19 3 16 5" fill="none" stroke="#627a6b" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M79 31c0-11 16-18 29-12-4 12-17 17-29 12Z" fill="#91b576"/><path d="m77 35 22-12" stroke="#648956" stroke-width="1.5" stroke-linecap="round"/>
+                  </g>
+                  <g id="totoro-walk-arm"><path d="M105 78q11 10 4 21" fill="none" stroke="#8b9f91" stroke-width="14" stroke-linecap="round"/><path d="m105 99 0 3m5-2 0 3" stroke="#eee6d2" stroke-width="1.5" stroke-linecap="round"/></g>
+                </g>
+                <g class="walk-leg" data-leg="near"><path/><g class="walk-paw"><ellipse cx="2" cy="3" rx="10" ry="5"/><path d="M3 3v3m4-3v3m4-3v3"/></g></g>
+              </g>
+            </svg>
+            <div class="accessory" aria-hidden="true">
+              <svg class="bowl-art" viewBox="0 0 70 52"><ellipse cx="35" cy="46" rx="30" ry="4" fill="#334735" opacity=".13"/><path d="m7 24 7 21h42l7-21Z" fill="#8db3ad"/><ellipse cx="35" cy="25" rx="28" ry="7" fill="#d2e8df"/><ellipse cx="35" cy="25" rx="22" ry="4" fill="#80b6c4"/><path d="M21 25q8-4 16-1" fill="none" stroke="#e9f8ee" stroke-width="1.5"/><path d="M32 8q-6 6 0 7c6-1 0-7 0-7" fill="#c8e7e3"/></svg>
+              <svg class="bed-art" viewBox="0 0 70 52"><ellipse cx="35" cy="44" rx="31" ry="7" fill="#344a35" opacity=".12"/><ellipse cx="35" cy="31" rx="30" ry="16" fill="#bda783"/><ellipse cx="35" cy="28" rx="24" ry="11" fill="#e5d6b4"/><path d="M5 30q30 18 60 0v10q-30 17-60 0Z" fill="#ad9775"/><path d="M14 38h42" stroke="#ceb993" stroke-width="2" stroke-dasharray="3 3"/></svg>
+              <svg class="shoe-art" viewBox="0 0 70 52"><ellipse cx="36" cy="46" rx="29" ry="4" fill="#334735" opacity=".13"/><path d="M11 20h17l11 12 17 3q8 1 8 10H8Z" fill="#dca777"/><path d="M8 41h55v5H8Z" fill="#f7efd7"/><path d="m30 26 7-3m-2 9 7-4M16 21v9" stroke="#f7efd7" stroke-width="2.5"/><path d="M13 18h13v6H13Z" fill="#719283"/></svg>
+            </div>
+            <svg class="sleep-art" id="sleep-art" viewBox="0 0 190 130" role="img" aria-label="Miso ligt opgekruld te slapen in zijn mandje">
+              <text class="sleep-z" x="127" y="24">z</text><text class="sleep-z" x="146" y="12" style="animation-delay:.7s;font-size:19px">z</text>
+              <ellipse cx="95" cy="108" rx="84" ry="18" fill="#b39d7c"/><ellipse cx="95" cy="100" rx="76" ry="16" fill="#e5d4ae"/>
+              <g data-buddy-art="miso"><g class="cat-body"><ellipse cx="102" cy="79" rx="56" ry="33" fill="#414b3e"/>
+                <svg x="28" y="27" width="82" height="82" viewBox="0 0 100 100"><use href="#miso-sleep-face"/></svg>
+                <ellipse cx="56" cy="102" rx="12" ry="6" fill="#fff3de"/><ellipse cx="79" cy="103" rx="12" ry="6" fill="#fff3de"/>
+                <path d="M53 103v3m6-3v3m17-3v3m6-3v3" stroke="#ddcdb8" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M139 74c40 21 0 40-36 28" fill="none" stroke="#525c47" stroke-width="18" stroke-linecap="round"/>
+              </g></g>
+              <g data-buddy-art="totoro"><g class="cat-body"><g transform="translate(35 -3) rotate(9 70 85)"><use href="#totoro-sleeping" width="120" height="118"/></g></g></g>
+              <path d="M11 103q83 32 168 0v14q-84 26-168 0Z" fill="#b39d7c"/><path d="M29 117q65 18 132-1" fill="none" stroke="#d9c5a0" stroke-width="2" stroke-dasharray="4 4"/>
+            </svg>
+          </div>
+          <div class="taskbar" aria-hidden="true">
+            <div class="app"><svg class="icon"><use href="#i-grid"/></svg></div><div class="app"><svg class="icon"><use href="#i-folder"/></svg></div>
+            <div class="app"><svg class="icon"><use href="#i-note"/></svg></div><div class="app"><svg class="icon"><use href="#i-paw"/></svg></div>
+            <div class="tray"><svg class="icon"><use href="#i-wifi"/></svg><span id="tray-clock">17:30</span></div>
+          </div>
+        </div>
+        <div class="preview-footer"><svg class="icon"><use href="#i-paw"/></svg><span id="scene-caption">Miso komt met zijn mandje aanlopen.</span><button class="replay" id="replay"><svg class="icon"><use href="#i-replay"/></svg>Nog een keer</button></div>
+      </section>
+      <aside class="details" aria-label="Uitleg en demo-instellingen">
+        <div class="detail-heading"><div class="detail-kicker" id="detail-kicker">MOMENT 03 / LOSLATEN</div><h2 id="detail-title">Genoeg voor<br>vandaag.</h2><p class="detail-description" id="detail-description">Geen streng alarm. Miso pakt zijn mandje en geeft je een vriendelijk excuus om af te sluiten.</p></div>
+        <div class="meter-card"><div class="meter-top"><span id="meter-label">Einde werkdag</span><strong id="meter-value">17:30</strong></div><div class="meter"><div id="meter-fill"></div></div><div class="meter-note" id="meter-note">Je ingestelde eindtijd is bereikt.</div></div>
+        <div class="settings">
+          <div class="setting"><label class="label" for="end-time">Werkdag eindigt om</label><input id="end-time" type="time" value="17:30" required></div>
+          <div class="setting"><span class="label" id="screen-toggle-label">Seintje na 8 uur</span><button class="switch" id="screen-toggle" role="switch" aria-checked="true" aria-labelledby="screen-toggle-label"></button></div>
+          <div class="setting"><span class="label" id="water-toggle-label">Waterherinnering</span><button class="switch" id="water-toggle" role="switch" aria-checked="true" aria-labelledby="water-toggle-label"></button></div>
+          <div class="setting"><span class="label" id="motion-label">Kat laten wandelen</span><button class="switch" id="motion-toggle" role="switch" aria-checked="true" aria-labelledby="motion-label"></button></div>
+          <hr class="divider">
+          <span class="sound-mark">Instellingen gelden alleen in deze demo.</span>
+        </div>
+        <div class="gentle-note"><svg class="icon"><use href="#i-leaf"/></svg><span id="gentle-copy">Jij beslist. Miso sluit niets af<br>en blokkeert je scherm niet.</span></div>
+      </aside>
+    </div>
+    <section class="bottom" aria-label="Ontwerpprincipes">
+      <div class="principle"><svg class="icon"><use href="#i-sound"/></svg><div><strong>Een duwtje. Geen onderbreking.</strong><p id="quiet-copy">Geen geluid, geen rood alarm. Gewoon een kat.</p></div></div>
+      <div class="principle"><svg class="icon"><use href="#i-clock"/></svg><div><strong>Schermtijd is niet je werktijd.</strong><p>8 uur actief gebruik en je eindtijd zijn aparte seintjes.</p></div></div>
+      <div class="principle"><svg class="icon"><use href="#i-shield"/></svg><div><strong>Gezelschap, geen controle.</strong><p>Het concept meet tijd, niet wat je typt of bekijkt.</p></div></div>
+    </section>
+    <footer class="page-footer"><span id="character-credit">MISO &middot; een eigen katje, ge&iuml;nspireerd door de screenmates van vroeger</span><span>Visuele mockup &middot; geen desktop-overlay of echte schermtijdmeting</span></footer>
+  </main>
+  <script>
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const pet = $("pet");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const companions = {
+      miso: {
+        name: "Miso", logo: "cat-logo", intro: "Een klein katje op je bureaublad.",
+        awake: "Miso, een rond, pluizig katje met grote glanzende ogen, roze wangetjes en witte sokjes",
+        sleeping: "Miso ligt opgekruld te slapen in zijn mandje",
+        quiet: "Geen geluid, geen rood alarm. Gewoon een kat.",
+        credit: "MISO \u00b7 een eigen katje, ge\u00efnspireerd door de screenmates van vroeger"
+      },
+      totoro: {
+        name: "Totoro", logo: "totoro-logo", intro: "Een zacht bosmaatje op je bureaublad.",
+        awake: "Een zelfgetekende, ronde Totoro met zachte grijze vacht, een creme buikje en een blaadje op zijn hoofd",
+        sleeping: "Totoro slaapt met zijn oogjes dicht, onder zijn blaadje in een mandje",
+        quiet: "Geen geluid, geen rood alarm. Gewoon een bosmaatje.",
+        credit: "TOTORO \u00b7 zelfgetekende, gestileerde fan-art voor deze conceptdemo; geen offici\u00eble app"
+      }
+    };
+    let companion = location.hash === "#totoro" ? "totoro" : "miso";
+    function companionText(text) {
+      return text.replaceAll("{name}", companions[companion].name);
+    }
+    const modes = {
+      water: {
+        icon: "water", label: "{name} heeft ook dorst", title: "Samen even water halen?",
+        description: "Mijn bakje is leeg. Misschien is jouw glas<br>ook wel toe aan een refill.",
+        action: "Ik haal een glas", snooze: "Over 10 min", clock: "14:15",
+        kicker: "MOMENT 01 / EVEN OPFRISSEN", heading: "Klein gebaar.<br>Frisse start.",
+        detail: "{name} schuift zijn waterbakje je scherm in. Een klein ritueel dat je even van je stoel af krijgt.",
+        meterLabel: "Sinds de vorige herinnering", meterValue: "60 min",
+        note: "Voorbeeldinterval: ieder uur actief gebruik.", caption: "{name} komt aanlopen met een waterbakje.",
+        acceptedTitle: "Ik wacht hier wel.", accepted: "Neem je tijd. Mijn bakje loopt niet weg.",
+        acceptedCaption: "Even weg van je scherm. {name} houdt je plek warm.",
+        snoozed: "Over 10 minuten kom ik nog even terug.", toggle: "water-toggle"
+      },
+      screen: {
+        icon: "clock", label: "Acht uur is een hele tijd", title: "De echte wereld roept.",
+        description: "Al 8 uur achter een scherm vandaag.<br>Zullen we onze benen even strekken?",
+        action: "Even naar buiten", snooze: "Nog 15 min", clock: "18:12",
+        kicker: "MOMENT 02 / UIT JE SCHERM", heading: "Acht uur.<br>Even eruit.",
+        detail: "{name} wandelt dwars door je beeld met een schoen. Niet om je te stoppen, maar om je even wakker te schudden.",
+        meterLabel: "Actieve schermtijd vandaag", meterValue: "8 u 00",
+        note: "Opgeteld over de dag. Pauzes tellen niet mee.", caption: "{name} heeft je wandelschoen gevonden.",
+        acceptedTitle: "Goed plan. Frisse lucht!",
+        accepted: "Je werk blijft hier. Ik pas er wel even op.",
+        acceptedCaption: "Een korte wandeling. Geen afteller, geen haast.",
+        snoozed: "Over 15 minuten probeer ik het nog een keer.", toggle: "screen-toggle"
+      },
+      finish: {
+        icon: "moon", label: "{name} vindt het mooi geweest", title: "Zullen we afronden?",
+        description: "Je hebt genoeg gedaan vandaag.<br>Ik ga alvast naar mijn mandje.",
+        action: "Ja, klaar voor vandaag", snooze: "Nog 15 min", clock: "17:30",
+        kicker: "MOMENT 03 / LOSLATEN", heading: "Genoeg voor<br>vandaag.",
+        detail: "Geen streng alarm. {name} pakt zijn mandje en geeft je een vriendelijk excuus om af te sluiten.",
+        meterLabel: "Einde werkdag", meterValue: "17:30",
+        note: "Je ingestelde eindtijd is bereikt.", caption: "{name} komt met zijn mandje aanlopen.",
+        acceptedTitle: "Morgen weer verder.",
+        accepted: "Sla je werk rustig op. Fijne avond!<br>Ik ben alvast aan het dromen.",
+        acceptedCaption: "{name} slaapt. Er wordt niets afgesloten of vergrendeld.",
+        snoozed: "Nog een kwartiertje. Ik zoek vast een fijn plekje."
+      }
+    };
+    let current = "finish";
+    let reminderState = "ready";
+    let walkFrame = 0;
+    let walkState = null;
+    let nextWalkDirection = 1;
+    const walkModels = {
+      miso: {
+        stride: 62, stance: .64, lift: 13, bounce: 1.6, speed: 110, upper: 25, lower: 28,
+        legs: [
+          { id: "hind-far", x: 56, y: 85, rest: 54, offset: .5, bend: -1 },
+          { id: "front-far", x: 119, y: 83, rest: 119, offset: .25, bend: 1 },
+          { id: "hind-near", x: 54, y: 87, rest: 53, offset: 0, bend: -1 },
+          { id: "front-near", x: 117, y: 86, rest: 120, offset: .75, bend: 1 }
+        ]
+      },
+      totoro: {
+        stride: 42, stance: .64, lift: 9, bounce: 2.6, speed: 72, upper: 15, lower: 18,
+        legs: [
+          { id: "far", x: 72, y: 105, rest: 73, offset: .5, bend: 1 },
+          { id: "near", x: 101, y: 104, rest: 103, offset: 0, bend: 1 }
+        ]
+      }
+    };
+    for (const [name, model] of Object.entries(walkModels)) {
+      const root = document.querySelector(`[data-walk-model="${name}"]`);
+      model.body = $(`${name}-walk-body`);
+      model.head = $(`${name}-walk-head`);
+      for (const leg of model.legs) {
+        const element = root.querySelector(`[data-leg="${leg.id}"]`);
+        leg.path = element.querySelector(":scope > path");
+        leg.paw = element.querySelector(".walk-paw");
+      }
+    }
+    function applyCompanion() {
+      const selected = companions[companion];
+      document.body.dataset.companion = companion;
+      document.title = `Pawse - ${selected.name}`;
+      document.querySelectorAll('input[name="companion"]').forEach(input => {
+        input.checked = input.value === companion;
+      });
+      $("brand-icon").setAttribute("href", `#${selected.logo}`);
+      $("intro-character").textContent = selected.intro;
+      $("awake-art").setAttribute("aria-label", selected.awake);
+      $("walk-art").setAttribute("aria-label", `${selected.name} loopt in zijaanzicht, met afwisselend stappende pootjes`);
+      $("sleep-art").setAttribute("aria-label", selected.sleeping);
+      $("motion-label").textContent = `${selected.name} laten wandelen`;
+      $("gentle-copy").textContent = `${selected.name} sluit niets af en blokkeert je scherm niet. Jij beslist.`;
+      $("quiet-copy").textContent = selected.quiet;
+      $("character-credit").textContent = selected.credit;
+    }
+    document.querySelectorAll('input[name="companion"]').forEach(input => {
+      input.addEventListener("change", () => {
+        companion = input.value;
+        history.replaceState(history.state, "", `#${companion}`);
+        applyCompanion();
+        render(current, true, reminderState);
+      });
+    });
+    window.addEventListener("hashchange", () => {
+      const next = location.hash === "#totoro" ? "totoro" : "miso";
+      if (next !== companion) {
+        companion = next;
+        applyCompanion();
+        render(current, true, reminderState);
+      }
+    });
+    function canWalk() {
+      return $("motion-toggle").getAttribute("aria-checked") === "true" && !reducedMotion.matches;
+    }
+    function stopWalk() {
+      cancelAnimationFrame(walkFrame);
+      walkFrame = 0;
+      walkState = null;
+      pet.classList.remove("walking");
+      pet.style.removeProperty("transform");
+    }
+    function legPose(distance, leg, model, bob, settle = 0) {
+      const phase = (distance / model.stride + leg.offset) % 1;
+      const halfStep = model.stride * model.stance / 2;
+      let x = leg.rest + halfStep - model.stride * phase;
+      let y = 126;
+      let angle = 0;
+      const contact = phase <= model.stance;
+      if (!contact) {
+        const swing = (phase - model.stance) / (1 - model.stance);
+        const smooth = swing * swing * (3 - 2 * swing);
+        const tangent = -model.stride * (1 - model.stance);
+        x = leg.rest - halfStep + 2 * halfStep * smooth +
+          tangent * (2 * swing ** 3 - 3 * swing ** 2 + swing);
+        y -= model.lift * Math.sin(Math.PI * swing) ** 2 * (1 - settle);
+        angle = -18 * Math.sin(2 * Math.PI * swing) * (1 - settle);
+      }
+      // During stance, the foot moves backward exactly as far as the body moves forward.
+      const hipY = leg.y + bob;
+      const dx = x - leg.x;
+      const dy = y - hipY;
+      const length = Math.hypot(dx, dy);
+      const along = (model.upper ** 2 - model.lower ** 2 + length ** 2) / (2 * length);
+      const height = Math.sqrt(Math.max(0, model.upper ** 2 - along ** 2));
+      const kneeX = leg.x + dx / length * along - dy / length * height * leg.bend;
+      const kneeY = hipY + dy / length * along + dx / length * height * leg.bend;
+      return { x, y, hipY, kneeX, kneeY, angle, contact, phase };
+    }
+    function paintWalk(distance, model, settle = 0) {
+      const cycle = distance / model.stride * 2 * Math.PI;
+      const bob = -model.bounce * (.5 - .5 * Math.cos(2 * cycle)) * (1 - settle);
+      model.body.setAttribute("transform", `translate(0 ${bob})`);
+      model.head.setAttribute("transform", `rotate(${1.4 * Math.sin(cycle) * (1 - settle)} 120 60)`);
+      if (model === walkModels.miso) {
+        $("miso-walk-tail").setAttribute("transform", `rotate(${7 * Math.sin(cycle - .6) * (1 - settle)} 53 82)`);
+      } else {
+        $("totoro-walk-arm").setAttribute("transform", `rotate(${-14 * Math.sin(cycle) * (1 - settle)} 105 78)`);
+      }
+      for (const leg of model.legs) {
+        const pose = legPose(distance, leg, model, bob, settle);
+        leg.path.setAttribute("d", `M${leg.x} ${pose.hipY} L${pose.kneeX} ${pose.kneeY} L${pose.x} ${pose.y}`);
+        leg.paw.setAttribute("transform", `translate(${pose.x} ${pose.y}) rotate(${pose.angle})`);
+      }
+    }
+    function walkProgress(time) {
+      if (time < .1) return time * time / .18;
+      if (time > .9) return 1 - (1 - time) ** 2 / .18;
+      return (time - .05) / .9;
+    }
+    function advanceWalk(timestamp) {
+      if (!walkState) return;
+      const state = walkState;
+      if (state.previous !== null) state.elapsed += Math.min((timestamp - state.previous) / 1000, .05);
+      state.previous = timestamp;
+      const progress = walkProgress(Math.min(1, state.elapsed / state.duration));
+      const travelled = state.distance * progress;
+      const offset = -state.direction * (state.distance - travelled);
+      pet.style.transform = `translateX(${offset}px)`;
+      const settle = Math.min(1, Math.max(0, (state.elapsed - state.duration) / .22));
+      paintWalk(travelled / state.scale, state.model, settle);
+      if (settle === 1) {
+        stopWalk();
+      } else {
+        walkFrame = requestAnimationFrame(advanceWalk);
+      }
+    }
+    function walkIn() {
+      stopWalk();
+      if (!canWalk()) return;
+      const model = walkModels[companion];
+      const direction = nextWalkDirection;
+      nextWalkDirection *= -1;
+      pet.dataset.facing = direction === 1 ? "right" : "left";
+      pet.classList.add("walking");
+      const scale = $("walk-art").clientWidth / 180;
+      const anchor = pet.offsetLeft;
+      const desktopWidth = $("desktop").clientWidth;
+      const required = direction === 1 ? anchor + 220 : desktopWidth - anchor + 220;
+      // Whole strides make the final step predictable; speed and gait share the same distance.
+      const distance = Math.ceil(required / (model.stride * scale)) * model.stride * scale;
+      walkState = { model, direction, scale, distance, anchor, desktopWidth, duration: distance / (model.speed * scale * .9), elapsed: 0, previous: null };
+      pet.style.transform = `translateX(${-direction * distance}px)`;
+      paintWalk(0, model);
+      walkFrame = requestAnimationFrame(advanceWalk);
+    }
+    window.addEventListener("resize", () => {
+      if (walkState && (walkState.desktopWidth !== $("desktop").clientWidth || walkState.anchor !== pet.offsetLeft)) stopWalk();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopWalk();
+    });
+    function render(mode, animate = true, state = "ready") {
+      stopWalk();
+      current = mode;
+      reminderState = state;
+      const scene = modes[mode];
+      const enabled = !scene.toggle || $(scene.toggle).getAttribute("aria-checked") === "true";
+      $("desktop").dataset.scene = mode;
+      document.querySelectorAll(".scene-tab").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+      });
+      pet.classList.remove("sleeping");
+      $("bubble-icon").setAttribute("href", `#i-${scene.icon}`);
+      $("bubble-label").textContent = companionText(scene.label);
+      $("bubble-title").textContent = scene.title;
+      $("bubble-description").innerHTML = scene.description;
+      $("accept").textContent = scene.action;
+      $("snooze").textContent = scene.snooze;
+      $("bubble-actions").hidden = false;
+      $("detail-kicker").textContent = scene.kicker;
+      $("detail-title").innerHTML = scene.heading;
+      $("detail-description").textContent = companionText(scene.detail);
+      $("meter-label").textContent = scene.meterLabel;
+      $("meter-value").textContent = mode === "finish" ? $("end-time").value : scene.meterValue;
+      $("meter-note").textContent = enabled ? scene.note : "Deze herinnering is uitgezet in de demo.";
+      $("meter-fill").style.width = enabled ? "100%" : "0%";
+      const time = mode === "finish" ? $("end-time").value : scene.clock;
+      $("wall-clock").textContent = time;
+      $("tray-clock").textContent = time;
+      $("scene-caption").textContent = companionText(enabled ? scene.caption : "Herinnering uit. {name} ligt rustig te slapen.");
+      $("bubble").hidden = !enabled;
+      if (!enabled) {
+        pet.classList.add("sleeping");
+      } else if (state === "accepted") {
+        showAccepted();
+      } else if (state === "snoozed") {
+        showSnoozed();
+      } else if (animate) {
+        walkIn();
+      }
+    }
+    document.querySelectorAll(".scene-tab").forEach(button => {
+      button.addEventListener("click", () => render(button.dataset.mode));
+    });
+    $("replay").addEventListener("click", () => render(current));
+    function showAccepted() {
+      const scene = modes[current];
+      reminderState = "accepted";
+      stopWalk();
+      $("bubble-title").textContent = scene.acceptedTitle;
+      $("bubble-description").innerHTML = scene.accepted;
+      $("bubble-label").textContent = companionText("{name} houdt je plek warm");
+      $("bubble-actions").hidden = true;
+      $("scene-caption").textContent = companionText(scene.acceptedCaption);
+      if (current === "finish") pet.classList.add("sleeping");
+    }
+    function showSnoozed() {
+      reminderState = "snoozed";
+      stopWalk();
+      pet.classList.add("sleeping");
+      $("bubble-label").textContent = "Jij bepaalt het tempo";
+      $("bubble-title").textContent = "Helemaal goed.";
+      $("bubble-description").textContent = modes[current].snoozed;
+      $("bubble-actions").hidden = true;
+      $("scene-caption").textContent = "Snooze-voorbeeld. In deze mockup loopt geen echte timer.";
+    }
+    $("accept").addEventListener("click", showAccepted);
+    $("snooze").addEventListener("click", showSnoozed);
+    ["water-toggle", "screen-toggle"].forEach(id => {
+      $(id).addEventListener("click", () => {
+        $(id).setAttribute("aria-checked", String($(id).getAttribute("aria-checked") !== "true"));
+        if (modes[current].toggle === id) render(current);
+      });
+    });
+    $("motion-toggle").addEventListener("click", () => {
+      const enabled = $("motion-toggle").getAttribute("aria-checked") !== "true";
+      $("motion-toggle").setAttribute("aria-checked", String(enabled));
+      document.body.classList.toggle("reduced-motion", !enabled);
+      if (!enabled) stopWalk();
+      else if (reminderState === "ready" && !$("bubble").hidden) walkIn();
+    });
+    $("end-time").addEventListener("change", () => {
+      if (!$("end-time").value) {
+        $("end-time").reportValidity();
+        return;
+      }
+      if (current === "finish") render(current, false);
+    });
+    reducedMotion.addEventListener("change", () => {
+      if (reducedMotion.matches) stopWalk();
+    });
+    applyCompanion();
+    render("finish");
+  </script>
+</body>
+</html>
